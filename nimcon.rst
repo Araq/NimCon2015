@@ -1234,6 +1234,15 @@ Currying
     result = newProc(procType = nnkLambda, params = params, body = callExpr)
 
 
+Slides
+======
+
+::
+  git clone https://github.com/Araq/NimCon2015
+  nim c -r build.nim
+
+
+
 CPU emulation
 =============
 
@@ -1739,6 +1748,85 @@ Emit pragma
   {.pop.}
 
   embedsC()
+
+
+Parallelism
+===========
+
+.. code-block::nim
+   :number-lines:
+
+  import tables, strutils
+
+  proc countWords(filename: string): CountTableRef[string] =
+    ## Counts all the words in the file.
+    result = newCountTable[string]()
+    for word in readFile(filename).split:
+      result.inc word
+
+
+Parallelism
+===========
+
+.. code-block::nim
+   :number-lines:
+
+  #
+  #
+  const
+    files = ["data1.txt", "data2.txt", "data3.txt", "data4.txt"]
+
+  proc main() =
+    var tab = newCountTable[string]()
+    for f in files:
+      let tab2 = countWords(f)
+      tab.merge(tab2)
+    tab.sort()
+    echo tab.largest
+
+  main()
+
+
+Parallelism
+===========
+
+.. code-block::nim
+   :number-lines:
+
+  import threadpool
+
+  const
+    files = ["data1.txt", "data2.txt", "data3.txt", "data4.txt"]
+
+  proc main() =
+    var tab = newCountTable[string]()
+    var results: array[files.len, ***FlowVar[CountTableRef[string]]***]
+    for i, f in files:
+      results[i] = ***spawn*** countWords(f)
+    for i in 0..high(results):
+      tab.merge(*** ^results[i] ***)
+    tab.sort()
+    echo tab.largest
+
+  main()
+
+
+Parallelism
+===========
+
+.. code-block::nim
+   :number-lines:
+
+  import strutils, math, threadpool
+
+  proc term(k: float): float = 4 * math.pow(-1, k) / (2*k + 1)
+
+  proc computePi(n: int): float =
+    var ch = newSeq[FlowVar[float]](n+1)
+    for k in 0..n:
+      ch[k] = spawn term(float(k))
+    for k in 0..n:
+      result += ^ch[k]
 
 
 Happy hacking!
