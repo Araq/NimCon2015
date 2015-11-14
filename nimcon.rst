@@ -1327,7 +1327,7 @@ CPU emulation
 .. code-block::nim
    :number-lines:
 
-  macro generateDispatcher(): stmt =
+  macro generateDispatcher(): untyped =
     # Expand opcode tables into switch block for instruction execution.
     #
     # dumpTree:
@@ -1345,15 +1345,15 @@ CPU emulation
     #     StmtList
     #       Call
     #         Ident !"impAddr"
-    #       Call
-    #         Ident !"brkOp"
-    #       Command
-    #         Ident !"inc"
-    #         DotExpr
-    #           Ident !"x"
-    #           Ident !"cycles"
-    #         IntLit 7
-    #   ...
+
+
+CPU emulation
+=============
+
+.. code-block::nim
+   :number-lines:
+
+  macro generateDispatcher(): untyped =
     let caseStmt = newTree(nnkCaseStmt, newIdentNode("opcode"))
     for i in 0..255:
       caseStmt.add(
